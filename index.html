@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Jogo Pong</title>
+		<script>
+      
+			//ELEMENTOS
+			var vbtIniciar;
+			var vbtNivel1;
+			var vbtNivel2;
+			var vbtNivel3;
+			var vbola;
+			var vcpu;
+			var vjogador;
+			var vPontosJogador;
+			var vPontosCpu;
+			var vnivel1;
+			var vnivel2;
+			var vnivel3;
+			//CONTROLE DE ANIMAÇÃO
+			var game, frames;
+			//POSIÇÕES
+			var posBolaX, posBolaY;
+			var posJogadorX, posJogadorY;
+			var posCpuX, posCpuY;
+			//DIREÇÃO DE ACORDO COM A TECLA
+			var dirJy;
+			//POSIÇÕES INICIAIS
+			var posJogIniY=180, posCpuIniY=180, posBolaIniX=675, posBolaIniY=240;
+			//TAMANHOS
+			var campoX=0, campoY=0, campoW=1160, campoH=500;
+			var barraW=20, barraH=140, bolaW=20, bolaH=20;
+			//DIREÇÃO
+			var bolaX, bolaY;
+			var cpuY=0;
+			//VELOCIDADE
+			var velBola, velCpu, velJogador;
+			//CONTROLE
+			var pontosJogador=0;
+			var pontosCpu=0;
+			var tecla;
+			var jogo=false;
+      
+      function controlaCpu(){
+				if(jogo){
+					if((posBolaX > (campoW/2))&&(bolaX > 0)){
+						//MOVIMENTAR CPU
+						if(((posBolaY + (bolaH/2)) > ((posCpuY + (barraH/2))) + velCpu)){
+							//MOVER PARA BAIXO
+							if((posCpuY+141) <= campoH){
+								posCpuY+= velCpu;
+							}
+						}else if(((posBolaY + (bolaH/2)) < ((posCpuY + (barraH/2))) - velCpu)){
+							//MOVER PARA CIMA
+								if(posCpuY >= 40){
+									posCpuY-= velCpu;
+								}
+							}						
+					}else{
+						//POSICIONAR CPU CENTRO
+						if((posCpuY + (barraH/2)) < (campoH/2)){
+							posCpuY+=velCpu;
+						}else if((posCpuY + (barraH/2)) > (campoH/2)){
+							posCpuY-=velCpu;
+						}
+					}
+					vcpu.style.top = posCpuY + "px";
+				}
+			}
+      
+			function controlaBola(){
+				//MOVIMENTAÇÃO BOLA
+				posBolaX+= velBola * bolaX;
+				posBolaY+= velBola * bolaY;
+        
+				//COLISÃO COM JOGADOR
+				if(
+					(posBolaX <= posJogadorX+barraW)&&
+					((posBolaY+bolaH >= posJogadorY)&&(posBolaY <= posJogadorY+barraH))
+				){
+					bolaY= (((posBolaY+(bolaH/2))-(posJogadorY+(barraH/2)))/62);
+					bolaX*= -1;
+				}
+				//COLISÃO COM CPU
+				if(
+					(posBolaX >= posCpuX-barraW)&&
+					((posBolaY+bolaH >= posCpuY)&&(posBolaY <= posCpuY+barraH))
+				){
+					bolaY= (((posBolaY+(bolaH/2))-(posCpuY+(barraH/2)))/62);
+					bolaX*= -1;
+				}
+				//LIMITES SUPERIOR E INFERIOR
+				if((posBolaY >= 480)||(posBolaY <= 0)){
+					bolaY*= -1;
+				}
+				//SAIU DA TELA PELA DIREITA E PELA ESQUERDA
+				if(posBolaX >= (campoW )){ //- bolaW)){
+					velBola = 0;
+					posBolaX = posBolaIniX;
+					posBolaY = posBolaIniY;
+					posJogadorY = posJogIniY;
+					posCpuY = posCpuIniY;
+					pontosJogador++;
+					vPontosJogador.value = pontosJogador;
+					jogo=false;					
+					if(pontosJogador >= 3){
+						//alert("JOGADOR VENCEU!");							
+						var jogvenceu=document.getElementById("jogadorVenceu");
+						jogvenceu.style.visibility="inherit";						
+						jogo=false;
+						//inicializar();												
+						vPontosJogador.value=0;
+						pontosJogador=0;
+						vPontosCpu.value=0;
+						pontosCpu=0;												
+					}																				
+					vjogador.style.top= posJogadorY + "px";
+					vcpu.style.top= posCpuY + "px";					
+				}else if(posBolaX <= 165){
+					velBola = 0;
+					posBolaX = posBolaIniX;
+					posBolaY = posBolaIniY;
+					posJogadorY = posJogIniY;
+					posCpuY = posCpuIniY;
+					pontosCpu++;
+					vPontosCpu.value = pontosCpu;
+					jogo=false;
+					if(pontosCpu >= 3){
+						var cpuvenceu=document.getElementById("cpuVenceu");
+						cpuvenceu.style.visibility="inherit";
+						jogo=false;					
+						vPontosCpu.value=0;
+						pontosCpu=0;
+						vPontosJogador.value=0;	
+						pontosJogador=0;					
+					}					
+					vjogador.style.top= posJogadorY + "px";
+					vcpu.style.top= posCpuY + "px";
+				}
+        
+				vbola.style.top= posBolaY + "px";
+				vbola.style.left= posBolaX + "px";
+			}
+      
+			function controlaJog(){
+				if(jogo){
+					posJogadorY+= velJogador * dirJy;
+					if(((posJogadorY + 127) >= campoH)||(posJogadorY <= 5)){
+						posJogadorY+= (velJogador * dirJy) * -1;
+					}
+					vjogador.style.top= posJogadorY + "px";
+				}
+			}
+      
+			function teclaDw(){
+				tecla = event.keyCode;
+				if(tecla === 38){ //CIMA
+					dirJy = -1;
+				}else if(tecla === 40){ //BAIXO
+					dirJy = 1;
+				}
+			}
+      
+			function teclaUp(){
+				tecla = event.keyCode;
+				if(tecla === 38){ //CIMA
+					dirJy = 0;
+				}else if(tecla === 40){ //BAIXO
+					dirJy = 0;
+				}
+			}
+      
+			function game(){
+				if(jogo){
+					controlaJog();
+					controlaBola();
+					controlaCpu();															
+				}
+				frames = requestAnimationFrame(game);
+			}
+      
+			function nivel1(){				
+				velCpu = 4;				
+				vnivel1=document.getElementById("dvbt1");
+				vnivel1.style.backgroundColor="#f00";
+				vnivel1.style.color="#fff";
+				vnivel2=document.getElementById("dvbt2");
+				vnivel2.style.backgroundColor="#fff";
+				vnivel2.style.color="#000";
+				vnivel3=document.getElementById("dvbt3");
+				vnivel3.style.backgroundColor="#fff";
+				vnivel3.style.color="#000";				
+			}
+      
+			function nivel2(){				
+				velCpu = 10;				
+				vnivel2=document.getElementById("dvbt2");
+				vnivel2.style.backgroundColor="#f00";
+				vnivel2.style.color="#fff";
+				vnivel1=document.getElementById("dvbt1");
+				vnivel1.style.backgroundColor="#fff";
+				vnivel1.style.color="#000";
+				vnivel3=document.getElementById("dvbt3");
+				vnivel3.style.backgroundColor="#fff";
+				vnivel3.style.color="#000";					
+			}
+      
+			function nivel3(){
+				velCpu = 19;
+				vnivel3=document.getElementById("dvbt3");
+				vnivel3.style.backgroundColor="#f00";
+				vnivel3.style.color="#fff";
+				vnivel1=document.getElementById("dvbt1");
+				vnivel1.style.backgroundColor="#fff";
+				vnivel1.style.color="#000";
+				vnivel2=document.getElementById("dvbt2");
+				vnivel2.style.backgroundColor="#fff";
+				vnivel2.style.color="#000";					
+			}			
+      
+			function iniciaJogo(){				
+				if(!jogo){
+					var jogvenceu=document.getElementById("jogadorVenceu");
+						jogvenceu.style.visibility="hidden";
+					var cpuvenceu=document.getElementById("cpuVenceu");
+						cpuvenceu.style.visibility="hidden";					
+					velBola= 15; 
+					velJogador = 8;
+					//velCpu= 12;					
+					cancelAnimationFrame(frames);
+					jogo=true;
+					dirJy=0;
+					bolaY=0;					
+					if(vPontosJogador > 0){bolaX= 1;}
+					else if(vPontosCpu > 0){bolaX= -1;}										
+					/*if((Math.random()*10)<5){
+						bolaX= -1;
+					}else{
+						bolaX= 1;
+					}*/
+					posBolaX= posBolaIniX;
+					posBolaY= posBolaIniY;				
+					posJogadorY=posJogIniY;	
+					posJogadorX=225;
+					posCpuX=1125;			
+					posCpuY= posCpuIniY;					
+					game();										
+				}
+			}											
+      
+			function inicializar(){
+				alert("ESCOLHA UM NÍVEL!");				
+				velBola= 15; 
+				velJogador = 8;
+				//velCpu= 12;
+				bolaX= 1;
+				vnivel1=document.getElementById("dvbt1");				
+				vnivel1.addEventListener("click", nivel1);
+        
+				vnivel2=document.getElementById("dvbt2");				
+				vnivel2.addEventListener("click", nivel2);
+        
+				vnivel3=document.getElementById("dvbt3");				
+				vnivel3.addEventListener("click", nivel3);
+        
+				vbtIniciar=document.getElementById("btIniciar");											
+				vbtIniciar.addEventListener("click", iniciaJogo);
+        
+				vjogador=document.getElementById("dvJogador");
+				vcpu=document.getElementById("dvCpu");
+				vbola=document.getElementById("dvBola");
+				vPontosJogador=document.getElementById("pontosJogador");
+				vPontosCpu=document.getElementById("pontosCpu");
+				document.addEventListener("keydown", teclaDw);
+				document.addEventListener("keyup", teclaUp);
+			}			
+      
+			window.addEventListener("load", inicializar);
+		</script>
+    
+		<style>	
+		body{background-color: #555;}
+			#dvPainel{
+				display: flex;
+				height: 50px;
+				align-items: center;
+			}
+			#dvJogo{
+				width: 960px;
+				height: 500px;
+				margin-left: 200px;
+				border-top: 6px solid #fff;
+				border-bottom: 6px solid #fff;
+				background-color: #0c6623;
+
+			}
+			#dvBola{
+				position: absolute;
+				top: 240px;
+				left: 675px;
+				width: 20px;
+				height: 20px;
+				border-radius: 100px;				
+				border: 1px solid #fff;
+				background-color: #fff;	
+			}
+			.barra{
+				position: absolute;
+				width: 20px;
+				height: 140px;
+				border-radius: 10px;				
+				border: 1px solid #000;
+				top: 180px;
+				background-color: #111;
+			}
+			.esquerda{
+				left: 220px;
+				border-right: 7px solid #f00;				
+			}
+			.direita{
+				left: 1130px;
+				border-left: 7px solid #00f;				
+			}
+			.painel{
+				margin-left: 280px;				
+			}
+			.formatarPainel{
+				width: 60px;
+				height: 40px;
+				margin-top: 10px;
+				font-size: 35px;
+				text-align: center;
+				background-color: #000;
+				color: #0f0;
+				border-radius: 5px;
+			}
+			#jogador{
+				margin-left: 10px;
+			}
+			#cpu{
+				margin-left: 150px;
+			}
+			.botao{
+				width: 100px;
+				height: 40px;
+				margin-top: 10px;
+				margin-left: 150px;
+				font-size: 20px;
+				font-weight: bold;
+				border-radius: 10px;
+				cursor: pointer;
+				background-color: #222;
+				color: #fff;
+			}
+			.botao:hover{
+				background-color: #f00;
+			}
+			.label{
+				font-size: 25px;
+				font-weight: bold;
+			}
+			.label2{				
+				margin-right: 5px;
+				border: 1px solid #000;
+				border-radius: 5px;
+				background-color: #000;
+				color: #eee;
+				font-size: 20px;
+				font-weight: bold;
+			}
+			.botaoNivel{
+				width: 40px;
+				height: 40px;
+				margin-right: 20px;
+				margin-top: 20px;
+				font-size: 20px;
+				border-radius: 10px;
+				cursor: pointer;
+			}
+			.botaoNivel:hover{
+				background-color: #f00;
+				color: #fff;
+			}
+			#nivel{
+				margin-left: 550px;
+			}
+			#jogadorVenceu{
+				width: 500px;
+				height: 200px;
+				margin-left: 240px;
+				text-align: center;				
+				font-size: 80px;
+				font-weight: bold;
+				border-radius: 5px;
+				background-color: #000;
+				color: #0f0;
+				visibility: hidden;												
+			}
+			#cpuVenceu{
+				width: 600px;
+				height: 140px;
+				margin-left: 200px;
+				margin-top: 80px;
+				text-align: center;								
+				font-size: 80px;
+				font-weight: bold;
+				border-radius: 5px;
+				background-color: #000;
+				color: #0f0;
+				visibility: hidden;												
+			}
+			#jg{
+				margin-right: 5px;
+				color: #f00; 
+				border: 1px solid #111;
+				border-radius: 5px;
+				background-color: #000;
+			}
+			#cp{
+				margin-right: 5px;
+				color: #00f;
+				border: 1px solid #111;
+				border-radius: 5px;
+				background-color: #000;
+			}					
+		</style>
+			
+	</head>	
+
+	<body>
+		<div id="dvJogo"> <!--CAMPO-->
+			<div id="cpuVenceu">CPU VENCEU!</div> <!--MENSAGEM DE VITÓRIA CPU-->
+			<div id="jogadorVenceu">JOGADOR  VENCEU!</div> <!--MENSAGEM DE VITÓRIA JOGADOR-->			
+			<div id="dvBola"></div> <!--BOLA-->
+			<div id="dvJogador" class="barra esquerda"></div> <!--JOGADOR-->
+			<div id="dvCpu" class="barra direita"></div> <!--CPU-->	
+		</div>
+
+		<div class="painel" id="dvPainel"> <!--PAINEL-->
+			<div id="jogador"> <!--JOGADOR-->
+				<label class="label" id="jg">JOGADOR </label> 
+				<input type="text" class="formatarPainel" id="pontosJogador" value="0" size="5">
+			</div>
+			<div class="itemPainel"> <!--BOTÃO INICIO DO JOGO-->
+				<button class="botao" id="btIniciar">JOGAR</button> 
+			</div>
+			<div id="cpu"> <!--CPU-->
+				<label class="label" id="cp">CPU </label>
+				<input type="text" class="formatarPainel" id="pontosCpu" value="0" size="5">				
+			</div>
+		</div>
+		<div id="nivel">
+			<label class="label2">NÍVEL </label> <!--NÍVEL DO JOGO-->
+			<button id="dvbt1" class="botaoNivel" value="1">1</button>
+			<button id="dvbt2" class="botaoNivel" value="2">2</button>
+			<button id="dvbt3" class="botaoNivel" value="3">3</button>			
+		</div>				
+	</body>
+</html>
